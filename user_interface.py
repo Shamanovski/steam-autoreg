@@ -31,6 +31,8 @@ steamreg = SteamRegger()
 with open("database/interface_states.json", "r") as f:
     STATES = json.load(f)
 
+ENGLISH = 'en'
+RUSSIAN = 'ru'
 
 class MainWindow:
 
@@ -69,17 +71,19 @@ class MainWindow:
         self.country_code = StringVar()
         self.country_code.set('7')
 
+        self.language = RUSSIAN  # default value
+
         self.menubar = Menu(parent)
         parent['menu'] = self.menubar
 
-        self.accounts_per_number_label = Label(self.frame, text='Количество аккаунтов на 1 номер:')
+        self.accounts_per_number_label = Label(self.frame, text='Amount of accounts per number')
         self.accounts_per_number_entry = Entry(self.frame, textvariable=self.accounts_per_number,
                                                width=2, disabledforeground='#808080')
         self.onlinesim_apikey_label = Label(self.frame, text='onlinesim api key:')
         self.onlinesim_apikey_entry = Entry(self.frame, textvariable=self.onlinesim_api_key, disabledforeground='#808080')
 
         self.new_accounts_amount_label = Label(self.frame, text='Количество аккаунтов для регистрации:')
-        self.new_accounts_amount_entry = Entry(self.frame, textvariable=self.new_accounts_amount, width=4,  disabledforeground='#808080')
+        self.new_accounts_amount_entry = Entry(self.frame, textvariable=self.new_accounts_amount, width=4, disabledforeground='#808080')
         self.rucaptcha_apikey_label = Label(self.frame, text='rucaptcha api key:')
         self.rucaptcha_apikey_entry = Entry(self.frame, textvariable=self.rucaptcha_api_key, disabledforeground='#808080')
 
@@ -151,6 +155,12 @@ class MainWindow:
             for checkbutton_attr, state in configs.get("checkbuttons", {}).items():
                 state = self.adjust_state(flag, state)
                 self.__getattribute__(checkbutton_attr).configure(state=state)
+
+    def set_text(self):
+
+
+    def choose_language(self, text):
+        return text[self.language]
 
     @staticmethod
     def adjust_state(flag, state):
