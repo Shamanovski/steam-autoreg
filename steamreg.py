@@ -42,20 +42,18 @@ class SteamRegger:
         resp_message = resp.get('message', None)
         if resp_message:
             if 'Please verify your humanity' in resp_message:
-                raise SteamCaptchaError('Слишком много неудачных входов в аккаунты, '
-                                        'Steam требует решить капчу.')
+                raise SteamCaptchaError('Too many unsuccessful attempts to log in. Steam demands to solve captcha')
             elif 'name or password that you have entered is incorrect' in resp_message:
-                raise SteamAuthError('Неверный логин или пароль: ' + login_name)
+                raise SteamAuthError('Incorrect login or password: ' + login_name)
 
         if resp['requires_twofactor']:
-            raise SteamAuthError('К аккаунту уже привязан Guard: ' + login_name)
+            raise SteamAuthError('Mobile Guard has already been set up: ' + login_name)
 
         if resp.get('emailauth_needed', None):
-            raise SteamAuthError('К аккаунту привязан Mail Guard. '
-                                 'Почта и пароль от него не предоставлены')
+            raise SteamAuthError('Email Guard has been set up.')
 
         if not steam_client.oauth:
-            error = 'Не удалось залогиниться в аккаунт: {}:{}'.format(
+            error = 'Failed to log in: {}:{}'.format(
                         login_name, password)
             raise SteamAuthError(error)
 

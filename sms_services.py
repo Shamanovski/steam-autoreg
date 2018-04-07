@@ -91,10 +91,10 @@ class OnlineSimApi:
                 resp = resp.json()
                 break
             except json.decoder.JSONDecodeError:
-                logger.error('Сработала CloudFlare защита: %s. Код ошибки: %s', url, resp.status_code)
+                logger.error('CloudFlare protection was triggered: %s. Error code: %s', url, resp.status_code)
                 time.sleep(3)
             except requests.exceptions.Timeout:
-                logger.error('Не удалось получить ответ от: %s', url)
+                logger.error('Couldn"t get a response from: %s', url)
 
         logger.info(str(resp))
         return resp
@@ -131,13 +131,8 @@ class SmsActivateApi:
         return id, number
 
     def set_status(self, id, status):
-        set_status_params = {
-        'api_key': self.api_key,
-        'action': 'setStatus',
-        'id': id
-        }
-        set_status_params['status'] = status
-        resp = requests.get(self.url, params=set_status_params)
+        resp = requests.get(self.url, params={
+            'api_key': self.api_key, 'action': 'setStatus', 'id': id, 'status': status})
         logger.info('Ответ от sms-activate на запрос установить статус: ' + resp.text)
 
     def get_status(self, id, sms_code_prev=None):
