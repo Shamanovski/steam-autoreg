@@ -158,7 +158,6 @@ class MainWindow:
         self.menubar = Menu(parent)
         parent['menu'] = self.menubar
 
-        self.accounts_per_number_label = Label(self.frame, text='Amount of accounts per phone number')
         self.product_key_label = Label(self.frame, text="Product key:")
 
         self.product_key_entry = Entry(self.frame, width=37, textvariable=self.software_product_key, state="readonly")
@@ -175,7 +174,7 @@ class MainWindow:
         self.captcha_api_key_label = Label(self.frame, text='Captcha api key:')
         self.captcha_api_key_entry = Entry(self.frame, textvariable=self.captcha_api_key, disabledforeground='#808080')
 
-        self.captcha_settings_bttn = Button(self.frame, text='Настроить капча сервис',
+        self.captcha_settings_bttn = Button(self.frame, text='Set up captcha service',
                                             command=self.deploy_captcha_window, bg='#CEC8C8', relief=GROOVE)
 
         tools_frame = Frame(self.parent)
@@ -316,11 +315,11 @@ class MainWindow:
         self.options_label.grid(row=2, column=0, pady=3, sticky=W)
 
         self.use_mail_repeatedly_checkbutton.grid(row=3, column=0, pady=1, sticky=W)
-        self.mafile_checkbutton.grid(row=3, column=1, pady=1)
+        self.mafile_checkbutton.grid(row=3, column=1, pady=1, sticky=W)
         self.fold_accounts_checkbutton.grid(row=4, column=1, pady=1, sticky=W)
         self.add_money_to_account_checkbutton.grid(row=4, column=0, pady=1, sticky=W)
-        self.amount_of_binders_label.grid(row=5, column=1, pady=1, sticky=W)
-        self.amount_of_binders_field.grid(row=5, column=1, pady=1, padx=45, sticky=E)
+        self.amount_of_binders_label.grid(row=5, column=0, pady=1, sticky=W)
+        self.amount_of_binders_field.grid(row=5, column=0, pady=1, sticky=E)
 
         self.start_button.grid(row=6, pady=10, columnspan=2)
         self.log_label.grid(row=0, column=0, pady=5, sticky=W)
@@ -333,7 +332,7 @@ class MainWindow:
 
     def deploy_stats_window(self):
         top = Toplevel(master=self.frame)
-        top.title("Статистика")
+        top.title("Statistics")
         top.iconbitmap('database/stats.ico')
 
         Label(top, text="Quota").grid(row=0, padx=5, column=0, pady=5, sticky=W)
@@ -423,9 +422,9 @@ class MainWindow:
             top.destroy()
 
         top = Toplevel(master=self.frame)
-        top.title("Активация кода")
+        top.title("Code activation")
         code = StringVar()
-        Label(top, text="Код:").grid(row=0, column=0, padx=5, pady=5, sticky=W)
+        Label(top, text="Code:").grid(row=0, column=0, padx=5, pady=5, sticky=W)
         Entry(top, textvariable=code, width=30) \
             .grid(row=0, column=1, padx=5, pady=5, sticky=W)
 
@@ -935,7 +934,7 @@ class MainWindow:
                 data = f.read()
         asyncio.ensure_future(self.proxy_broker.find(
             data=data, types=types), loop=loop)
-        self.status_bar.set("Чекаю прокси...")
+        self.status_bar.set("Checking proxies...")
         loop.run_until_complete(self.produce_proxies())
         loop.close()
         self.status_bar.set("")

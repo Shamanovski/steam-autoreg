@@ -575,7 +575,7 @@ class SteamRegger:
             if r['bAvailable']:
                 return password
             time.sleep(3)
-            self.client.add_log("Пароль %s слишком часто используется и поэтому не был принят" % password)
+            self.client.add_log("The password %s is used too often and thus was not accepted" % password)
 
     def fetch_confirmation_link(self, email, email_password, creationid):
         email_domain = email.partition("@")[2]

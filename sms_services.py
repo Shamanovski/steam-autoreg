@@ -130,7 +130,7 @@ class SmsActivateApi:
                                                    'action': 'getBalance'}, timeout=10)
         logger.info(resp.text)
         if float(resp.text.partition(':')[2]) < 2:
-            raise SmsActivateError('Недостаточно баланса для заказа номера')
+            raise SmsActivateError('Insufficient funds to order a number')
         return resp.text
 
     def get_number(self, country='0'):
