@@ -104,7 +104,7 @@ class SteamRegger:
                 captcha_id = self.generate_captcha(steam_client.session, captcha_gid, 'COMMUNITY')
                 captcha_text = self.resolve_captcha(captcha_id)
                 self.failed_captchas_counter += 1
-                self.client.captchas_failed_stat.set("Капч не удалось решить: %d" % self.failed_captchas_counter)
+                self.client.captchas_failed_stat.set("Captchas unresolved: %d" % self.failed_captchas_counter)
 
     def mobile_login(self, login_name, password, email=None, email_passwd=None):
         steam_client = SteamClient(None, self.proxy)
@@ -112,7 +112,7 @@ class SteamRegger:
         resp_message = resp.get('message', None)
         if resp_message:
             if 'Please verify your humanity' in resp_message:
-                raise SteamCaptchaError('Too many unsuccessful attempts to log in. Steam demands to solve captcha')
+                raise SteamAuthError('Too many unsuccessful attempts to log in. Steam demands to solve captcha')
             elif 'name or password that you have entered is incorrect' in resp_message:
                 raise SteamAuthError('Incorrect login or password: ' + login_name)
         self.sucessfull_captchas_counter += 1
@@ -121,7 +121,7 @@ class SteamRegger:
         resp_message = resp.get('message', '')
 
         if 'name or password that you have entered is incorrect' in resp_message:
-            raise SteamAuthError('Неверный логин или пароль: ' + login_name)
+            raise SteamAuthError('Incorrect login or password: ' + login_name)
 
         if resp['requires_twofactor']:
             raise SteamAuthError('Mobile Guard has already been set up: ' + login_name)
@@ -156,14 +156,14 @@ class SteamRegger:
         resp_message = resp.get('message', '')
 
         if 'name or password that you have entered is incorrect' in resp_message:
-            raise SteamAuthError('Неверный логин или пароль: ' + login_name)
+            raise SteamAuthError('Incorrect login or password: ' + login_name)
 
         if resp['requires_twofactor']:
-            raise SteamAuthError('К аккаунту уже привязан Guard: ' + login_name)
+            raise SteamAuthError('Guard has already been linked: ' + login_name)
 
         if resp.get('emailauth_needed', None):
-            raise SteamAuthError('К аккаунту привязан Mail Guard. '
-                                 'Почта и пароль от него не предоставлены')
+            raise SteamAuthError('Mail guard has been linked to this accounts '
+                                 'Email and email password has not been uploaded')
 
         if not steam_client.oauth:
             error = 'Failed to log in: {}:{}'.format(
@@ -402,7 +402,7 @@ class SteamRegger:
             price = 0
 
         self.captchas_expenses_total += float(price)
-        self.client.captchas_expenses_stat.set("Потрачено на капчи: %d" % self.captchas_expenses_total)
+        self.client.captchas_expenses_stat.set("Expenses on captchas: %d" % self.captchas_expenses_total)
         resolved_captcha = resolved_captcha.replace('amp;', '')
         return resolved_captcha
 
@@ -426,7 +426,7 @@ class SteamRegger:
         resp = self.request_post(session, 'https://store.steampowered.com/join/ajaxverifyemail', data=data)
         logger.info('ajaxverify response: %s', resp)
         if resp['success'] == 17:
-            raise InvalidEmail("Данный почтовый адрес не поддерживается Steam")
+            raise InvalidEmail("The email address is not supported by Steam")
         if resp['success'] != 1:
             raise LimitReached
 
@@ -581,9 +581,9 @@ class SteamRegger:
         email_domain = email.partition("@")[2]
         imap_host = convert_edomain_to_imap(email_domain, "database/imap-hosts.json")
         if imap_host is None:
-            raise InvalidEmail("Не удается найти imap host для данного email домена: %s"
-                               "Убедитесь, что файл imap-hosts.json оформлен правильно и "
-                               "imap хост для данного домена добавлен в него: %s" % email_domain)
+            raise InvalidEmail("Can't find imap host for current email address: %s"
+                               "Make sure that the imap host file is formatted correctly and "
+                               "imap host for the current email domain has been added: %s" % email_domain)
 
         server = imaplib.IMAP4_SSL(imap_host)
         server.login(email, email_password)
@@ -613,7 +613,7 @@ class SteamRegger:
                 return link
             time.sleep(5)
         server.close()
-        raise InvalidEmail("Не удается получить письмо от Steam")
+        raise InvalidEmail("Can't receive email from Steam")
 
 
 class RuCaptcha:
@@ -633,9 +633,9 @@ class RuCaptcha:
                                    'action': 'getbalance'})
         logger.info(resp.text)
         if 'ERROR_ZERO_BALANCE' in resp.text:
-            raise RuCaptchaError('На счету нулевой баланс')
+            raise RuCaptchaError('Zero balance on account')
         elif 'ERROR_WRONG_USER_KEY' in resp.text or 'ERROR_KEY_DOES_NOT_EXIST' in resp.text:
-            raise RuCaptchaError('Неправильно введен API ключ')
+            raise RuCaptchaError('API key is incorrect')
 
         return resp.text
 

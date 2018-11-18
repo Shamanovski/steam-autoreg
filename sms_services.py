@@ -120,10 +120,10 @@ class SmsActivateApi:
         resp = requests.get(self.base_url, params={'api_key': self.api_key,
                                                    'action': 'getNumbersStatus'}, timeout=10)
         if 'BAD_KEY' in resp.text:
-            raise SmsActivateError('Неверный API ключ')
+            raise SmsActivateError('API key is incorrect')
 
         if not resp.json()['ot_0']:
-            raise SmsActivateError('Закончились номера')
+            raise SmsActivateError('Run out of numbers')
 
     def get_balance(self):
         resp = requests.get(self.base_url, params={'api_key': self.api_key,
@@ -167,7 +167,7 @@ class SmsActivateApi:
         resp = requests.get(self.base_url, params={'api_key': self.api_key,
                                                    'action': 'getStatus',
                                                    'id': id}, timeout=10)
-        logger.info('Ответ от sms-activate на запрос получить статус: ' + resp.text)
+        logger.info('Response from sms-activate to receive status: ' + resp.text)
         try:
             status, delimeter, smscode_msg = resp.text.partition(':')
             sms_code = re.search(r'\d+', smscode_msg).group()
