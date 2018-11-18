@@ -7,16 +7,22 @@ import logging
 class OnlineSimError(Exception): pass
 class SmsActivateError(Exception): pass
 
+
 logger = logging.getLogger('__main__')
+
 
 class OnlineSimApi:
 
-    def __init__(self, api_key):
+    def __init__(self, api_key, host):
         self.api_key = api_key
-        self.used_codes = set()
+        if not host:
+            host = "onlinesim.ru"
+        else:
+            host = re.search(r"(?:https?://)?(.+)/?", host).group(1).rstrip("/")
+        self.base_url = "http://" + host + "/%s"
 
-    def request_new_number(self, country='7'):
-        url = 'http://onlinesim.ru/api/getNum.php'
+    def _request_new_number(self, country):
+        url = self.base_url % 'api/getNum.php'
         data = {
             'service': 'Steam',
             'apikey': self.api_key,
@@ -36,52 +42,51 @@ class OnlineSimApi:
                 raise OnlineSimError(resp['response'])
         return tzid
 
-    def get_number(self, tzid):
-        url = 'http://onlinesim.ru/api/getState.php'
+    def get_number(self, country='7'):
+        tzid = self._request_new_number(country)
+        url = self.base_url % 'api/getState.php'
         data = {'message_to_code': 1, 'tzid': tzid, 'apikey': self.api_key}
         while True:
             resp = self._send_request(url, data)
             try:
-                return resp[0]['number']
+                return tzid, resp[0]['number']
             except (KeyError, IndexError):
                 if resp[0]['response'] == 'TZ_INPOOL':
                     time.sleep(3)
                     continue
                 raise OnlineSimError(resp['response'])
 
-    def get_sms_code(self, tzid, is_repeated=False):
-        attempts = 0
-        url = 'http://onlinesim.ru/api/getState.php'
+    def get_sms_code(self, tzid):
+        url = self.base_url % 'api/getState.php'
         data = {'message_to_code': 1, 'tzid': tzid, 'apikey': self.api_key}
-        while attempts < 30:
-            attempts += 1
-            time.sleep(3)
-            if is_repeated:
-                self.request_repeated_number_usage(tzid)
-            resp = self._send_request(url, data)
-            try:
-                sms_code = resp[0].get('msg', None)
-                time_left = resp[0].get('time', None)
-            except KeyError:
-                logger.info("The time of the number usage has been expired")
-                raise OnlineSimError
-            if sms_code and sms_code not in self.used_codes:
-                self.used_codes.add(sms_code)
-                return sms_code
-            if not time_left:
-                raise OnlineSimError
-        logger.info("Couldn't receive the SMS code.")
-        return None
+        resp = self._send_request(url, data)
+        try:
+            sms_code = resp[0].get('msg', None)
+            time_left = resp[0].get('time', None)
+        except IndexError:
+            raise OnlineSimError(resp.text)
+        if not time_left:
+            raise OnlineSimError(resp[0])
+        return sms_code
 
     def set_operation_ok(self, tzid):
-        url = 'http://onlinesim.ru/api/setOperationOk.php'
+        url = self.base_url % 'api/setOperationOk.php'
         data = {'tzid': tzid, 'apikey': self.api_key}
         self._send_request(url, data)
 
     def request_repeated_number_usage(self, tzid):
-        url = 'http://onlinesim.ru/api/setOperationRevise.php'
+        url = self.base_url % 'api/setOperationRevise.php'
         data = {'tzid': tzid, 'apikey': self.api_key}
         self._send_request(url, data)
+
+    def get_balance(self):
+        url = self.base_url % 'api/getBalance.php'
+        data = {'apikey': self.api_key}
+        resp = self._send_request(url, data)
+        try:
+            return resp["balance"]
+        except KeyError:
+            raise OnlineSimError(resp["response"])
 
     @staticmethod
     def _send_request(url, data):
@@ -102,67 +107,72 @@ class OnlineSimApi:
 
 class SmsActivateApi:
 
-    def __init__(self, api_key):
+    def __init__(self, api_key, host):
         self.api_key = api_key
-        self.url = 'http://sms-activate.ru/stubs/handler_api.php'
+        if not host:
+            host = "sms-activate.ru"
+        else:
+            host = re.search(r"(?:https?://)?(.+)/?", host).group(1).rstrip("/")
+        self.base_url = "http://" + host + "/stubs/handler_api.php"
 
-    def get_number(self):
-        resp = requests.get(self.url, params={'api_key': self.api_key,
-                                             'action': 'getNumbersStatus'})
+    def get_number_status(self):
+        """Get number of numbers available"""
+        resp = requests.get(self.base_url, params={'api_key': self.api_key,
+                                                   'action': 'getNumbersStatus'}, timeout=10)
         if 'BAD_KEY' in resp.text:
             raise SmsActivateError('Неверный API ключ')
 
         if not resp.json()['ot_0']:
             raise SmsActivateError('Закончились номера')
 
-        resp = requests.get(self.url, params={'api_key': self.api_key,
-                                             'action': 'getBalance'})
+    def get_balance(self):
+        resp = requests.get(self.base_url, params={'api_key': self.api_key,
+                                                   'action': 'getBalance'}, timeout=10)
         logger.info(resp.text)
-        if int(resp.text.partition(':')[2]) < 2:
+        if float(resp.text.partition(':')[2]) < 2:
             raise SmsActivateError('Недостаточно баланса для заказа номера')
+        return resp.text
 
-        resp = requests.get(self.url, params={'api_key': self.api_key,
-                                             'action': 'getNumber',
-                                             'service': 'ot',
-                                             'operator': 'beeline'})
+    def get_number(self, country='0'):
+        resp = requests.get(self.base_url, params={'api_key': self.api_key,
+                                                   'action': 'getNumber',
+                                                   'service': 'mt',
+                                                   'operator': 'any',
+                                                   'country': country}, timeout=10)
         logger.info('Ответ от sms-activate на запрос получить новый номер: ' + resp.text)
+        if "ACCESS_NUMBER" not in resp.text:
+            raise SmsActivateError(resp.text)
+
         id, number = resp.text.split(':')[1:]
         number = '+' + number
         return id, number
 
-    def set_status(self, id, status):
-        resp = requests.get(self.url, params={
-            'api_key': self.api_key, 'action': 'setStatus', 'id': id, 'status': status})
+    def set_operation_ok(self, id):
+        self._set_status(id, 6)
+
+    def request_repeated_number_usage(self, id):
+        self._set_status(id, 3)
+
+    def _set_status(self, id, status):
+        """
+        :param id: activation id
+        :param status: 1 - number is ready, 3 - request number again, 6 - complete activation
+        :return: None
+        """
+        set_status_params = {'api_key': self.api_key, 'action': 'setStatus', 'id': id, 'status': status}
+        resp = requests.get(self.base_url, params=set_status_params, timeout=10)
         logger.info('Ответ от sms-activate на запрос установить статус: ' + resp.text)
 
-    def get_status(self, id, sms_code_prev=None):
-        def get_sms():
-            resp = requests.get(self.url, params={'api_key': self.api_key,
-                                                  'action': 'getStatus',
-                                                  'id': id})
-            logger.info('Ответ от sms-activate на запрос получить статус: ' + resp.text)
+    def get_sms_code(self, id):
+        resp = requests.get(self.base_url, params={'api_key': self.api_key,
+                                                   'action': 'getStatus',
+                                                   'id': id}, timeout=10)
+        logger.info('Ответ от sms-activate на запрос получить статус: ' + resp.text)
+        try:
             status, delimeter, smscode_msg = resp.text.partition(':')
-            try:
-                sms_code = re.search('\d+', smscode_msg).group()
-            except AttributeError:
-                sms_code = ''
-            time.sleep(3)
-            return status, sms_code
+            sms_code = re.search(r'\d+', smscode_msg).group()
+        except AttributeError:
+            sms_code = ''
 
-        attempts = 0
-        if not sms_code_prev:
-            status = ''
-            while attempts < 20:
-                status, sms_code = get_sms()
-                if status == 'STATUS_OK':
-                    return sms_code
-                attempts += 1
-        else:
-            sms_code = sms_code_prev
-            while attempts < 20:
-                status, sms_code = get_sms()
-                if sms_code != sms_code_prev:
-                    return sms_code
-                attempts += 1
+        return sms_code
 
-        return None
