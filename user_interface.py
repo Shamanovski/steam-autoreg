@@ -642,7 +642,7 @@ class MainWindow:
     def save_input(self):
         exceptions = ('status_bar', 'license', 'stat', 'quota')
         for field, value in self.__dict__.items():
-            if list(filter(lambda exception: exception in field, exceptions)) and "status" not in field:
+            if list(filter(lambda exception: exception in field, exceptions)) or "status" in field:
                 continue
             if issubclass(value.__class__, Variable) or 'path' in field:
                 try:
@@ -1041,7 +1041,7 @@ class MainWindow:
                         continue
                     data.append(item.strip())
         except (EnvironmentError, TypeError):
-            showwarning("Error", "Can't find specified file", parent=self.parent)
+            # showwarning("Error", "Can't find specified file", parent=self.parent)
             return ''
 
         if data:

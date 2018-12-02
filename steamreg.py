@@ -104,7 +104,24 @@ class SteamRegger:
                 captcha_id = self.generate_captcha(steam_client.session, captcha_gid, 'COMMUNITY')
                 captcha_text = self.resolve_captcha(captcha_id)
                 self.failed_captchas_counter += 1
-                self.client.captchas_failed_stat.set("Captchas unresolved: %d" % self.failed_captchas_counter)
+                self.client.captchas_failed_stat.set("Капч не удалось решить: %d" % self.failed_captchas_counter)
+
+        self.sucessfull_captchas_counter += 1
+        self.client.captchas_resolved_stat.set("Капч решено успешно: %d" % self.sucessfull_captchas_counter)
+
+        resp_message = resp.get('message', '')
+
+        if 'name or password that you have entered is incorrect' in resp_message:
+            raise SteamAuthError('Неверный логин или пароль: ' + login_name)
+
+        if resp['requires_twofactor']:
+            raise SteamAuthError('К аккаунту уже привязан Guard: ' + login_name)
+
+        if resp.get('emailauth_needed', None):
+            raise SteamAuthError('К аккаунту привязан Mail Guard. '
+                                 'Почта и пароль от него не предоставлены')
+
+        return steam_client
 
     def mobile_login(self, login_name, password, email=None, email_passwd=None):
         steam_client = SteamClient(None, self.proxy)
