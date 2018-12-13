@@ -9,8 +9,8 @@ if feature == "registration":
 elif feature == "binding":
     data["binding_quota"] = quota_amount
 else:
-    raise ValueError("The feature doesn't exist")
+    raise ValueError("Задана несуществующая функция")
 
 
-resp = requests.post("http://shamanovski.pythonanywhere.com/addquota", data=data)
+resp = requests.post("http://shamanovski.pythonanywhere.com/updatequota", data=data)
 print(resp.text)
