@@ -104,22 +104,22 @@ class SteamRegger:
                 captcha_id = self.generate_captcha(steam_client.session, captcha_gid, 'COMMUNITY')
                 captcha_text = self.resolve_captcha(captcha_id)
                 self.failed_captchas_counter += 1
-                self.client.captchas_failed_stat.set("Капч не удалось решить: %d" % self.failed_captchas_counter)
+                self.client.captchas_failed_stat.set("Captchas couldn't be resolved: %d" % self.failed_captchas_counter)
 
         self.sucessfull_captchas_counter += 1
-        self.client.captchas_resolved_stat.set("Капч решено успешно: %d" % self.sucessfull_captchas_counter)
+        self.client.captchas_resolved_stat.set("Captchas resolved: %d" % self.sucessfull_captchas_counter)
 
         resp_message = resp.get('message', '')
 
         if 'name or password that you have entered is incorrect' in resp_message:
-            raise SteamAuthError('Неверный логин или пароль: ' + login_name)
+            raise SteamAuthError('Wrong login or password: ' + login_name)
 
         if resp['requires_twofactor']:
-            raise SteamAuthError('К аккаунту уже привязан Guard: ' + login_name)
+            raise SteamAuthError('Mobile guard has already been activated: ' + login_name)
 
         if resp.get('emailauth_needed', None):
-            raise SteamAuthError('К аккаунту привязан Mail Guard. '
-                                 'Почта и пароль от него не предоставлены')
+            raise SteamAuthError('Mail Guard is activated on this account. '
+                                 'Email and its password has not been given')
 
         return steam_client
 
@@ -133,7 +133,7 @@ class SteamRegger:
             elif 'name or password that you have entered is incorrect' in resp_message:
                 raise SteamAuthError('Incorrect login or password: ' + login_name)
         self.sucessfull_captchas_counter += 1
-        self.client.captchas_resolved_stat.set("Капч решено успешно: %d" % self.sucessfull_captchas_counter)
+        self.client.captchas_resolved_stat.set("Captchas resolved: %d" % self.sucessfull_captchas_counter)
 
         resp_message = resp.get('message', '')
 
@@ -474,7 +474,7 @@ class SteamRegger:
             logger.info(str(r) + " %s", login_name)
             if r['bAvailable']:
                 return login_name
-            self.client.add_log("Логин %s занят" % login_name)
+            self.client.add_log("Login %s is used" % login_name)
             time.sleep(3)
 
     @staticmethod

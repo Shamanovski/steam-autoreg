@@ -442,14 +442,14 @@ class MainWindow:
     def deploy_additional_settings_window(self):
         def add_imap_host():
             if not self.imap_host.get() or not self.email_domains.get():
-                showinfo("Сообщение", "Задайте IMAP сервер и почтовые домены соответствующие ему", parent=top)
+                showinfo("Message", "Specify IMAP server and email domains related to it", parent=top)
                 return
             self.imap_hosts[self.imap_host.get()] = self.email_domains.get().split(",")
-            showinfo("Сообщение", "IMAP сервер и почтовые домены связанные с ним успешно добавлены", parent=top)
+            showinfo("Message", "IMAP server and email domains related to it has been added", parent=top)
 
         def list_imap_hosts(top):
             top = Toplevel(master=top)
-            top.title("IMAP сервера")
+            top.title("IMAP servers")
             row = 0
             for imap_server, email_domains in self.imap_hosts.items():
                 Label(top, text="%s: %s" % (imap_server, ", ".join(email_domains)))\
@@ -472,21 +472,21 @@ class MainWindow:
         Entry(top, textvariable=self.money_to_add, width=5) \
             .grid(row=4, column=1, padx=5, pady=5, sticky=W)
 
-        Label(top, text="Почты").grid(row=5, column=0, padx=5, pady=5, sticky=W)
-        Checkbutton(top, text="Генерировать почты", variable=self.generate_emails) \
+        Label(top, text="Emails").grid(row=5, column=0, padx=5, pady=5, sticky=W)
+        Checkbutton(top, text="Generate emails", variable=self.generate_emails) \
             .grid(row=6, column=0, padx=5, pady=5, sticky=W)
-        Checkbutton(top, text="Удалять использованные почты с файла", variable=self.remove_emails_from_file) \
+        Checkbutton(top, text="Delete used emails from text file", variable=self.remove_emails_from_file) \
             .grid(row=7, column=0, padx=5, pady=5, sticky=W)
 
         Label(top, text="IMAP сервер:").grid(column=0, row=8, padx=5, pady=5, sticky=W)
         Entry(top, textvariable=self.imap_host, width=30) \
             .grid(row=8, column=1, padx=5, pady=5, sticky=W)
 
-        Label(top, text="Домены (через запятую без пробелов)").grid(column=0, row=9, padx=5, pady=5, sticky=W)
+        Label(top, text="Domains (with a comma without spaces)").grid(column=0, row=9, padx=5, pady=5, sticky=W)
         Entry(top, textvariable=self.email_domains, width=30) \
             .grid(row=9, column=1, padx=5, pady=5, sticky=W)
 
-        Button(top, text="Добавить", command=add_imap_host) \
+        Button(top, text="Add", command=add_imap_host) \
             .grid(row=10, column=0, padx=5, pady=5, sticky=W)
 
         Label(top, text="Product key").grid(row=4, column=0, padx=5, pady=5, sticky=W)
@@ -494,11 +494,11 @@ class MainWindow:
             .grid(column=0, row=5, padx=5, pady=5, sticky=W)
 
         Button(top, command=top.destroy, text="Confirm").grid(column=0, columnspan=2, row=6, padx=5, pady=5)
-        Label(top, text="Комментарии").grid(row=15, column=0, padx=5, pady=5, sticky=W)
-        Label(top, text="subid игры можно узнать на steamdb.info (например https://steamdb.info/app/730/subs/)"
-                        "\nлибо в исходном коде страницы игры в магазине Steam"
-                        "\n\nГенерировать почты означает, что вы загружаете одну единственную почту\nна которую "
-                        "перенаправляются все письма от сгенерированных",
+        Label(top, text="Notes").grid(row=15, column=0, padx=5, pady=5, sticky=W)
+        Label(top, text="game subid can be found on steamdb.info (for example https://steamdb.info/app/730/subs/)"
+                        "\nor in the source code of the page of the game on the steam store"
+                        "\n\nGenerate emails means that you use one loaded email where\n"
+                        "all mails from generated emails are redirected to",
               justify=LEFT).grid(column=0, columnspan=2, row=16, padx=5, sticky=W)
 
         Button(top, command=top.destroy, text="Подтвердить").grid(column=0, columnspan=2, row=17, padx=5, pady=5)
@@ -523,14 +523,14 @@ class MainWindow:
         rbttn.grid(column=0, row=4, padx=5, pady=5, sticky=W)
         rbttn2 = Radiobutton(top, text="Sequential", variable=self.selection_type, value=int(SelectionType.CONSISTENT))
         rbttn2.grid(column=1, row=4, padx=5, pady=5, sticky=W)
-        Label(top, text="Если вы хотите, чтобы никнейм генерировался рандомно, то оставьте поле пустым.\n"
-                        "Если вы хотите, чтобы никнейм был таким же, как логин, напишите в поле {login}", justify=LEFT)\
+        Label(top, text="If you want your nicknames to be generated randomly, leave it empty.\n"
+                        "If you want your nickname to be the same as login write {login}", justify=LEFT)\
             .grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky=W)
 
-        Label(top, text="Выборка элементов списка:").grid(row=4, column=0, padx=5, pady=5, sticky=W)
-        rbttn = Radiobutton(top, text="Рандомная", variable=self.selection_type, value=int(SelectionType.RANDOM))
+        Label(top, text="List elements selection type:").grid(row=4, column=0, padx=5, pady=5, sticky=W)
+        rbttn = Radiobutton(top, text="Random", variable=self.selection_type, value=int(SelectionType.RANDOM))
         rbttn.grid(column=0, row=5, padx=5, pady=5, sticky=W)
-        rbttn2 = Radiobutton(top, text="Последовательная", variable=self.selection_type, value=int(SelectionType.CONSISTENT))
+        rbttn2 = Radiobutton(top, text="Consistent", variable=self.selection_type, value=int(SelectionType.CONSISTENT))
         rbttn2.grid(column=1, row=5, padx=5, pady=5, sticky=W)
 
         Label(top, text="Real names:").grid(row=5, column=0, padx=5, pady=5, sticky=W)
@@ -652,7 +652,7 @@ class MainWindow:
                 return False
 
             if self.paid_games.get():
-                is_agree = askyesno("Покупка игр", "Вы уверены что хотите покупать игры на аккаунтах?",
+                is_agree = askyesno("Games purchasing", "Are you sure you want to buy games on accounts?",
                                     icon='warning')
                 if not is_agree:
                     return False
@@ -837,7 +837,7 @@ class MainWindow:
         top = Toplevel(master=self.frame)
         top.title("Proxy set up")
         top.iconbitmap('database/proxy.ico')
-        checkbttn = Checkbutton(top, text="Не использовать родной IP если есть прокси", variable=self.dont_use_local_ip)
+        checkbttn = Checkbutton(top, text="Don't use local IP if proxy is used", variable=self.dont_use_local_ip)
         checkbttn.grid(column=0, row=0, pady=5, sticky=W)
 
         checkbttn2 = Checkbutton(top, text="\nMiss proxy where \ncaptchas resolving is needed to authorize",
@@ -907,7 +907,7 @@ class MainWindow:
         top.title("SIM service configuration")
         top.iconbitmap('database/sim.ico')
 
-        Label(top, text='Сервис:').grid(row=0, column=0, pady=5, padx=5, sticky=W)
+        Label(top, text='Service:').grid(row=0, column=0, pady=5, padx=5, sticky=W)
         Radiobutton(top, text='OnlineSim', variable=self.sms_service_type, value=int(SmsService.OnlineSim),
                     command=deploy_countries_list).grid(row=1, column=0, pady=5, padx=5, sticky=W)
         Radiobutton(top, text='SMS Activate', variable=self.sms_service_type, value=int(SmsService.SmsActivate),
@@ -1114,9 +1114,8 @@ class MainWindow:
                 for row, item in enumerate(f.readlines()):
                     if regexr and not re.match(regexr, item):
                         self.add_log("Unacceptable value: {0} in row {1}".format(item.strip(), row))
-                        self.add_log("Недопустимое значение: {0} в строке {1}".format(item.strip(), row))
                         if not item.endswith("\n"):
-                            self.add_log("Отсутствует новая строка (нажмите Enter в конце строки)")
+                            self.add_log("New line is absent (type Enter at the end of the row)")
                         continue
                     data.append(item.strip())
         except (EnvironmentError, TypeError):
@@ -1145,9 +1144,9 @@ class MainWindow:
                 for email in self.email_boxes_data:
                     f.write(email + "\n")
 
-        with open("accounts.txt", "w") as f:
-            while not self.accounts.empty():
-                f.write(self.accounts.get() + "\n")
+        # with open("accounts.txt", "w") as f:
+        #     while not self.accounts.empty():
+        #         f.write(self.accounts.get() + "\n")
 
         requests.post("https://shamanovski.pythonanywhere.com/updatequota", data={
             "registration_quota": self.registration_quota.get(),
@@ -1263,7 +1262,7 @@ class RegistrationThread(threading.Thread):
             country = self.select_profile_data(self.client.countries, selection_type)
             steamreg.activate_account(steam_client, summary, real_name, country)
             steamreg.edit_profile(steam_client)
-            self.client.add_log("Профиль активирован: %s:%s" % (login, passwd))
+            self.client.add_log("Profile has been activated: %s:%s" % (login, passwd))
 
         if self.client.avatars:
             if self.client.selection_type.get() == SelectionType.RANDOM:
@@ -1293,7 +1292,6 @@ class RegistrationThread(threading.Thread):
         if self.client.paid_games.get():
             self.purchase_games(steam_client)
 
-        self.client.add_log("Profile has been activated: %s:%s" % (login, passwd))
         account = Account(login, passwd, email, email_password)
         self.client.accounts.put(account)
         self.counter += 1
@@ -1500,9 +1498,8 @@ class Binder(threading.Thread):
         if not self.client.autoreg.get() and self.client.activate_profile.get():
             steamreg.activate_account(steam_client, "", "", "")
             steamreg.edit_profile(steam_client)
+            self.client.add_log("Profile activated: %s:%s" % (login, passwd))
         insert_log('Guard has been activated successfully')
-            self.client.add_log("Профиль активирован: %s:%s" % (login, passwd))
-        insert_log('Guard успешно привязан')
         self.binded_counter += 1
         self.client.accounts_binded_stat.set("Accounts binding: %d" % self.binded_counter)
         self.client.accounts_binded_stat.set("Accounts for binding left: %d" % (self.binding_total - self.binded_counter))
